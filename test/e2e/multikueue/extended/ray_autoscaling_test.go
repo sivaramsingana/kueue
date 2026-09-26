@@ -18,6 +18,7 @@ package extended
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -178,7 +179,7 @@ func runRayClusterSequentialScaleUpTest(
 
 			g.Expect(podset.FindPodSetByName(firstScaleUpSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(1)))
 			g.Expect(apimeta.IsStatusConditionTrue(firstScaleUpSlice.Status.Conditions, kueue.WorkloadAdmitted)).To(gomega.BeTrue())
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 
 	ginkgo.By("Creating the second actor so the autoscaler requests a second worker", func() {
@@ -198,7 +199,7 @@ func runRayClusterSequentialScaleUpTest(
 
 			g.Expect(podset.FindPodSetByName(secondScaleUpSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(2)))
 			g.Expect(apimeta.IsStatusConditionTrue(secondScaleUpSlice.Status.Conditions, kueue.WorkloadAdmitted)).To(gomega.BeTrue())
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 }
 
@@ -311,7 +312,7 @@ func runRayJobAutoscalingTest(
 			upSlice := liveRayWorkloadSlice(g, k8sManagerClient, managerNs.Name, wlLookupKey.Name)
 			upSliceName = upSlice.Name
 			g.Expect(podset.FindPodSetByName(upSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(2)))
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 
 	ginkgo.By("Terminating both actors so the autoscaler scales the child back down to zero workers", func() {
@@ -340,7 +341,7 @@ func runRayJobAutoscalingTest(
 			downSlice := liveRayWorkloadSlice(g, k8sManagerClient, managerNs.Name, wlLookupKey.Name)
 			g.Expect(downSlice.Name).To(gomega.Equal(upSliceName))
 			g.Expect(podset.FindPodSetByName(downSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(0)))
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 
 	ginkgo.By("Creating one detached actor so the autoscaler scales the child back up to one worker", func() {
@@ -366,7 +367,7 @@ func runRayJobAutoscalingTest(
 			newUpSlice := liveRayWorkloadSlice(g, k8sManagerClient, managerNs.Name, wlLookupKey.Name)
 			g.Expect(newUpSlice.Name).NotTo(gomega.Equal(upSliceName))
 			g.Expect(podset.FindPodSetByName(newUpSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(1)))
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 }
 
@@ -458,7 +459,7 @@ func runRayClusterAutoscalingTest(
 			workerSlice := liveRayWorkloadSlice(g, workerClient, managerNs.Name, wlLookupKey.Name)
 			g.Expect(apimeta.IsStatusConditionTrue(workerSlice.Status.Conditions, kueue.WorkloadAdmitted)).To(gomega.BeTrue())
 			g.Expect(podset.FindPodSetByName(workerSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(2)))
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 
 	ginkgo.By("Checking the worker RayCluster keeps the autoscaled size", func() {
@@ -501,7 +502,7 @@ func runRayClusterAutoscalingTest(
 			workerSlice := liveRayWorkloadSlice(g, workerClient, managerNs.Name, wlLookupKey.Name)
 			g.Expect(apimeta.IsStatusConditionTrue(workerSlice.Status.Conditions, kueue.WorkloadAdmitted)).To(gomega.BeTrue())
 			g.Expect(podset.FindPodSetByName(workerSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(0)))
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 
 	ginkgo.By("Checking the worker RayCluster keeps running at the scaled-down size", func() {
@@ -541,7 +542,7 @@ func runRayClusterAutoscalingTest(
 			workerSlice := liveRayWorkloadSlice(g, workerClient, managerNs.Name, wlLookupKey.Name)
 			g.Expect(apimeta.IsStatusConditionTrue(workerSlice.Status.Conditions, kueue.WorkloadAdmitted)).To(gomega.BeTrue())
 			g.Expect(podset.FindPodSetByName(workerSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(1)))
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 	})
 
 	ginkgo.By("Checking the worker RayCluster keeps the re-scaled-up size", func() {
@@ -701,7 +702,7 @@ func runRayClusterReadmissionAfterPreemptionTest(
 			g.Expect(k8sManagerClient.Get(ctx, readmittedSliceKey, createdSlice)).To(gomega.Succeed())
 			g.Expect(podset.FindPodSetByName(createdSlice.Spec.PodSets, "workers-group-0").Count).To(gomega.Equal(int32(1)))
 			g.Expect(workload.IsAdmitted(createdSlice)).To(gomega.BeTrue())
-		}, util.VeryLongTimeout, util.Interval).Should(gomega.Succeed())
+		}, 10*time.Minute, util.Interval).Should(gomega.Succeed())
 
 		readmittedWorkerName := util.ExpectWorkloadsToBeAdmittedAndGetWorkerName(ctx, k8sManagerClient, readmittedSliceKey, multiKueueAc.Name)
 		gomega.Expect(readmittedWorkerName).To(gomega.HavePrefix("worker1-"))
